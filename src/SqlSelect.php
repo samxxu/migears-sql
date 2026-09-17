@@ -20,7 +20,7 @@ use MiGears\Sql\Exception\SqlException;
  *       ->limit(10)
  *       ->execute();
  */
-final class SqlSelect
+class SqlSelect
 {
     use HasWhereClause;
 

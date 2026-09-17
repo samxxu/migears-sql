@@ -17,7 +17,7 @@ use MiGears\Sql\Exception\SqlException;
  *       ->where('id = :id', ['id' => 1])
  *       ->execute();
  */
-final class SqlUpdate
+class SqlUpdate
 {
     use HasWhereClause;
 

@@ -16,7 +16,7 @@ use Psr\Log\NullLogger;
  *   $sql = new SqlBuilder($pdo);
  *   $rows = $sql->select()->from('users')->where('id = :id', ['id' => 1])->execute();
  */
-final class SqlBuilder
+class SqlBuilder
 {
     public const VERSION = '2.0.0';
 

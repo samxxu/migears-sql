@@ -17,7 +17,7 @@ use MiGears\Sql\Exception\SqlException;
  *       ->execute()
  *       ->lastInsertId();
  */
-final class SqlInsert
+class SqlInsert
 {
     /** @var array<string, mixed> */
     private array $values = [];

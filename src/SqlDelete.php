@@ -15,7 +15,7 @@ use Psr\Log\NullLogger;
  *       ->where('id = :id', ['id' => 1])
  *       ->execute();
  */
-final class SqlDelete
+class SqlDelete
 {
     use HasWhereClause;
 
