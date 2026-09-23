@@ -4,6 +4,10 @@
 
 Lightweight SQL query builder for PHP 8.1+, with zero mandatory dependencies (except the PDO extension).
 
+> **Background**: miGears is the open-source successor of **TinyGears**, a
+> self-developed PHP framework. It was renamed and open-sourced recently because
+> the name *TinyGears* is already taken in the open-source community.
+
 ## Features
 
 - **Minimalist API**: `$sql->select()->from('users')->filter(['status' => 1])->execute()`
