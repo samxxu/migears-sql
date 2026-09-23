@@ -284,6 +284,18 @@ class SqlSelectTest extends TestCase
         $this->assertEquals('Charlie', $result['records'][0]['name']);
     }
 
+    public function testPaginateWithZeroPageThrows(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->sql->select()->from('users')->paginate(0, 2);
+    }
+
+    public function testPaginateWithNegativePageSizeThrows(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->sql->select()->from('users')->paginate(1, 0);
+    }
+
     public function testToSqlGeneratesCorrectSql(): void
     {
         $sql = $this->sql->select(['id', 'name'])

@@ -187,6 +187,13 @@ class SqlSelect
      */
     public function paginate(int $page, int $pageSize): array
     {
+        if ($page < 1) {
+            throw new \InvalidArgumentException('Page must be >= 1, got ' . $page);
+        }
+        if ($pageSize < 1) {
+            throw new \InvalidArgumentException('Page size must be >= 1, got ' . $pageSize);
+        }
+
         $total = $this->count();
         $this->limit = $pageSize;
         $this->offset = ($page - 1) * $pageSize;
