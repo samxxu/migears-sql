@@ -65,7 +65,7 @@ class SqlDeleteTest extends TestCase
 
         $this->assertStringContainsString('DELETE FROM `users`', $sql);
         $this->assertStringContainsString('WHERE', $sql);
-        $this->assertStringContainsString('`id` = :id', $sql);
+        $this->assertStringContainsString('`id` = :f_id', $sql);
     }
 
     public function testToSqlWithoutWhere(): void

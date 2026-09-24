@@ -66,6 +66,20 @@ $user = $sql->select()->from('users')->filter(['id' => 1])->singleOrFail();
 // Count
 $count = $sql->select()->from('users')->filter(['status' => 1])->count();
 
+// Group by
+$rows = $sql->select(['status', 'COUNT(*) as cnt'])
+    ->from('users')
+    ->groupBy('status')
+    ->execute();
+
+// Separate bind() calls (equivalent to passing params to where())
+$rows = $sql->select()
+    ->from('users')
+    ->where('status = :status AND age > :age')
+    ->bind(['status' => 1])
+    ->bind(['age' => 18])
+    ->execute();
+
 // Pagination
 $result = $sql->select()->from('users')->paginate(1, 20);
 // ['records' => [...], 'total' => 100]
@@ -80,7 +94,7 @@ $result = $sql->select()->from('users')->paginate(1, 20);
 | `<` | < | `['age<' => 30]` | `` `age` < :age `` |
 | `>=` | >= | `['age>=' => 18]` | `` `age` >= :age `` |
 | `<=` | <= | `['age<=' => 30]` | `` `age` <= :age `` |
-| `!` / `<>` | != | `['status!' => 0]` | `` `status` != :status `` |
+| `!` / `<>` / `><` | != | `['status!' => 0]` | `` `status` != :status `` |
 
 ### Multi-Table / JOIN Queries
 
@@ -254,6 +268,20 @@ $user = $sql->select()->from('users')->filter(['id' => 1])->singleOrFail();
 // 统计
 $count = $sql->select()->from('users')->filter(['status' => 1])->count();
 
+// 分组
+$rows = $sql->select(['status', 'COUNT(*) as cnt'])
+    ->from('users')
+    ->groupBy('status')
+    ->execute();
+
+// 分开调用 bind()（与把参数传给 where() 等效）
+$rows = $sql->select()
+    ->from('users')
+    ->where('status = :status AND age > :age')
+    ->bind(['status' => 1])
+    ->bind(['age' => 18])
+    ->execute();
+
 // 分页
 $result = $sql->select()->from('users')->paginate(1, 20);
 // ['records' => [...], 'total' => 100]
@@ -268,7 +296,7 @@ $result = $sql->select()->from('users')->paginate(1, 20);
 | `<` | < | `['age<' => 30]` | `` `age` < :age `` |
 | `>=` | >= | `['age>=' => 18]` | `` `age` >= :age `` |
 | `<=` | <= | `['age<=' => 30]` | `` `age` <= :age `` |
-| `!` / `<>` | != | `['status!' => 0]` | `` `status` != :status `` |
+| `!` / `<>` / `><` | != | `['status!' => 0]` | `` `status` != :status `` |
 
 ### 多表 / JOIN 查询
 

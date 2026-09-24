@@ -341,4 +341,58 @@ class SqlSelectTest extends TestCase
 
         $this->assertSame([], $rows);
     }
+
+    public function testMultipleFiltersOnSameFieldUseUniquePlaceholders(): void
+    {
+        // age > 20 AND age < 40 — both bind to the same field name
+        // but must not overwrite each other's placeholder value.
+        $rows = $this->sql->select()
+            ->from('users')
+            ->filter(['age>' => 20])
+            ->filter(['age<' => 40])
+            ->orderBy('id ASC')
+            ->execute();
+
+        // All 5 users have age between 20 and 40.
+        $this->assertCount(5, $rows);
+        $this->assertSame('Alice', $rows[0]['name']);
+        $this->assertSame('Bob', $rows[1]['name']);
+        $this->assertSame('Eve', $rows[4]['name']);
+    }
+
+    public function testWhereAndFilterWithSameFieldNameDoNotCollide(): void
+    {
+        // where() uses :age and filter() also has an age condition.
+        // The filter placeholder must not collide with the where param.
+        $rows = $this->sql->select()
+            ->from('users')
+            ->where('age <> :age', ['age' => 25])
+            ->filter(['age>' => 20])
+            ->orderBy('id ASC')
+            ->execute();
+
+        // 4 users: Bob(30), Charlie(35), Diana(28), Eve(22) — Alice(25) excluded
+        $this->assertCount(4, $rows);
+        $this->assertSame('Bob', $rows[0]['name']);
+        $this->assertSame('Charlie', $rows[1]['name']);
+    }
+
+    public function testPaginatePreservesOriginalLimitAndOffset(): void
+    {
+        $select = $this->sql->select()
+            ->from('users')
+            ->orderBy('id ASC')
+            ->limit(10)
+            ->offset(0);
+
+        $result = $select->paginate(2, 2);
+        $this->assertSame(5, $result['total']);
+        $this->assertCount(2, $result['records']);
+        $this->assertSame('Charlie', $result['records'][0]['name']);
+
+        // After paginate(), the original limit/offset must be restored
+        // so subsequent calls to execute() still return all matching rows.
+        $all = $select->execute();
+        $this->assertCount(5, $all);
+    }
 }

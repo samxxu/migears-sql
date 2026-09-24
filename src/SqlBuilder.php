@@ -18,8 +18,6 @@ use Psr\Log\NullLogger;
  */
 class SqlBuilder
 {
-    public const VERSION = '2.0.0';
-
     public function __construct(
         private readonly PDO $pdo,
         private readonly LoggerInterface $logger = new NullLogger(),

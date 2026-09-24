@@ -194,12 +194,19 @@ class SqlSelect
             throw new \InvalidArgumentException('Page size must be >= 1, got ' . $pageSize);
         }
 
-        $total = $this->count();
-        $this->limit = $pageSize;
-        $this->offset = ($page - 1) * $pageSize;
-        $records = $this->execute();
+        $prevLimit = $this->limit;
+        $prevOffset = $this->offset;
 
-        return ['records' => $records, 'total' => $total];
+        try {
+            $total = $this->count();
+            $this->limit = $pageSize;
+            $this->offset = ($page - 1) * $pageSize;
+            $records = $this->execute();
+            return ['records' => $records, 'total' => $total];
+        } finally {
+            $this->limit = $prevLimit;
+            $this->offset = $prevOffset;
+        }
     }
 
     private function getLogger(): LoggerInterface

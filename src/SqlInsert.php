@@ -22,6 +22,8 @@ class SqlInsert
     /** @var array<string, mixed> */
     private array $values = [];
 
+    private int $affectedRows = 0;
+
     public function __construct(
         private readonly PDO $pdo,
         private readonly string $table,
@@ -73,8 +75,6 @@ class SqlInsert
         $this->affectedRows = $stmt->rowCount();
         return $this;
     }
-
-    private int $affectedRows = 0;
 
     /**
      * Returns the number of affected rows.

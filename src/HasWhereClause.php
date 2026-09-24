@@ -35,6 +35,9 @@ trait HasWhereClause
     /** @var array<string, mixed> filter-style parameters (keys may have operator suffix) */
     private array $filterParams = [];
 
+    /** @var array<string, string> Maps each filter key to its unique placeholder name */
+    private array $filterPlaceholders = [];
+
     abstract protected function getLogger(): LoggerInterface;
 
     abstract protected function getPdo(): PDO;
@@ -78,17 +81,39 @@ trait HasWhereClause
 
     /**
      * Builds the WHERE SQL fragment (including WHERE keyword), returns empty string if no conditions.
+     *
+     * Also populates $filterPlaceholders so bindAllParams() can bind values using
+     * the same unique names. Placeholders are named f_{field} (f_{field}_2, f_{field}_3, ...
+     * on collision) to avoid conflicts with bind()/where() parameters and with other
+     * filter conditions on the same field (e.g. age> and age<).
      */
     protected function buildWhere(): string
     {
         $segments = [];
+        $used = [];
 
         if ($this->whereClause !== null && $this->whereClause !== '') {
             $segments[] = $this->whereClause;
+            foreach (array_keys($this->bindParams) as $name) {
+                $used[$name] = true;
+            }
         }
 
+        $this->filterPlaceholders = [];
         foreach ($this->filterParams as $key => $_value) {
-            $segments[] = $this->parseFilterSegment($key);
+            $field = $this->extractFilterField($key);
+            $base = 'f_' . $field;
+            $name = $base;
+            $i = 1;
+            while (isset($used[$name])) {
+                ++$i;
+                $name = $base . '_' . $i;
+            }
+            $used[$name] = true;
+            $this->filterPlaceholders[$key] = $name;
+
+            $operator = $this->parseFilterOperator($key);
+            $segments[] = "`{$field}` {$operator} :{$name}";
         }
 
         if ($segments === []) {
@@ -99,17 +124,15 @@ trait HasWhereClause
     }
 
     /**
-     * Parses a filter key, returns a fragment in "`field` op :placeholder" form.
-     * Placeholder names use the field name (with operator suffix stripped); if duplicate with existing params, a suffix is added to avoid conflicts.
+     * Extracts the comparison operator from a filter key (e.g. "age>" => ">").
      */
-    private function parseFilterSegment(string $key): string
+    private function parseFilterOperator(string $key): string
     {
         if (!preg_match('/^([\w]+)([!<>=]{0,2})$/', $key, $matches)) {
             throw new SqlException("Invalid filter expression: {$key}");
         }
 
-        $field = $matches[1];
-        $operator = match ($matches[2]) {
+        return match ($matches[2]) {
             '!', '<>', '><' => '!=',
             '>' => '>',
             '<' => '<',
@@ -118,12 +141,13 @@ trait HasWhereClause
             '', '=' => '=',
             default => throw new SqlException("Unsupported filter operator: {$matches[2]}"),
         };
-
-        return "`{$field}` {$operator} :{$field}";
     }
 
     /**
      * Binds all parameters (bind + filter) onto the PDOStatement.
+     *
+     * Call buildWhere() first — it populates $filterPlaceholders with the
+     * unique placeholder names used in the generated SQL.
      */
     protected function bindAllParams(PDOStatement $stmt): void
     {
@@ -132,8 +156,8 @@ trait HasWhereClause
         }
 
         foreach ($this->filterParams as $key => $value) {
-            $field = $this->extractFilterField($key);
-            $stmt->bindValue($field, $value);
+            $placeholder = $this->filterPlaceholders[$key] ?? $this->extractFilterField($key);
+            $stmt->bindValue($placeholder, $value);
         }
     }
 
