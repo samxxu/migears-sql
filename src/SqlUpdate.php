@@ -68,6 +68,7 @@ class SqlUpdate
         }
 
         foreach (array_keys($this->setValues) as $key) {
+            $this->assertValidColumn((string) $key);
             $segments[] = "`{$key}` = :set_{$key}";
         }
 
@@ -113,5 +114,16 @@ class SqlUpdate
     private function getPdo(): PDO
     {
         return $this->pdo;
+    }
+
+    /**
+     * Rejects column names that could break out of the backtick-quoted
+     * identifier (e.g. "name` = 'HACKED' -- ").
+     */
+    private function assertValidColumn(string $column): void
+    {
+        if (!preg_match('/^\w+$/', $column)) {
+            throw new SqlException("Invalid column name: {$column}");
+        }
     }
 }

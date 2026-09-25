@@ -77,4 +77,20 @@ class SqlInsertTest extends TestCase
         $result = $insert->values(['name' => 'Test', 'email' => 'test@test.com']);
         $this->assertSame($insert, $result);
     }
+
+    public function testInsertWithBacktickInColumnNameThrowsException(): void
+    {
+        $this->expectException(SqlException::class);
+        $this->sql->insert('users')
+            ->values(["name`, email`) SELECT 'x' AS name, 'x@x.com' AS email FROM users -- " => 'evil'])
+            ->toSql();
+    }
+
+    public function testInsertWithSpaceInColumnNameThrowsException(): void
+    {
+        $this->expectException(SqlException::class);
+        $this->sql->insert('users')
+            ->values(['a b' => 1])
+            ->toSql();
+    }
 }

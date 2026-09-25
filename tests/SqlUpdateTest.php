@@ -112,4 +112,22 @@ class SqlUpdateTest extends TestCase
 
         $this->assertEquals(3, $affected);
     }
+
+    public function testSetWithBacktickInColumnNameThrowsException(): void
+    {
+        $this->expectException(SqlException::class);
+        $this->sql->update('users')
+            ->set(["name` = 'HACKED' -- " => 'ignored'])
+            ->filter(['id' => 1])
+            ->toSql();
+    }
+
+    public function testSetWithSpaceInColumnNameThrowsException(): void
+    {
+        $this->expectException(SqlException::class);
+        $this->sql->update('users')
+            ->set(['a b' => 1])
+            ->filter(['id' => 1])
+            ->toSql();
+    }
 }

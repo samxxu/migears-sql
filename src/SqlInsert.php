@@ -52,6 +52,9 @@ class SqlInsert
         }
 
         $columns = array_keys($this->values);
+        foreach ($columns as $column) {
+            $this->assertValidColumn((string) $column);
+        }
         $cols = '`' . implode('`, `', $columns) . '`';
         $placeholders = ':' . implode(', :', $columns);
 
@@ -90,5 +93,16 @@ class SqlInsert
     public function lastInsertId(): string|false
     {
         return $this->pdo->lastInsertId();
+    }
+
+    /**
+     * Rejects column names that could break out of the backtick-quoted
+     * identifier (e.g. "name` , email = 'x' -- ").
+     */
+    private function assertValidColumn(string $column): void
+    {
+        if (!preg_match('/^\w+$/', $column)) {
+            throw new SqlException("Invalid column name: {$column}");
+        }
     }
 }
