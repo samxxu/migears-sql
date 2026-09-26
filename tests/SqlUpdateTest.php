@@ -130,4 +130,30 @@ class SqlUpdateTest extends TestCase
             ->filter(['id' => 1])
             ->toSql();
     }
+
+    public function testUpdateWithoutConditionThrowsException(): void
+    {
+        // A bare update() must not be able to rewrite the whole table.
+        $this->expectException(SqlException::class);
+        $this->sql->update('users')->set(['status' => 0])->execute();
+    }
+
+    public function testUpdateWithoutConditionLeavesRowsUnchanged(): void
+    {
+        try {
+            $this->sql->update('users')->set(['status' => 0])->execute();
+        } catch (SqlException) {
+            // expected
+        }
+
+        $this->assertEquals(3, $this->sql->select()->from('users')->filter(['status' => 1])->count());
+    }
+
+    public function testUpdateAllRowsWithExplicitCondition(): void
+    {
+        $affected = $this->sql->update('users')->set(['status' => 0])->where('1 = 1')->execute();
+
+        $this->assertEquals(5, $affected);
+        $this->assertEquals(0, $this->sql->select()->from('users')->filter(['status' => 1])->count());
+    }
 }

@@ -40,9 +40,20 @@ class SqlDelete
 
     /**
      * Executes the DELETE, returns the number of affected rows.
+     *
+     * Refuses to run without a condition, so an accidental delete()->execute()
+     * cannot empty a table. Add an explicit condition such as where('1 = 1')
+     * to delete every row on purpose.
      */
     public function execute(): int
     {
+        if ($this->buildWhere() === '') {
+            throw new SqlException(
+                "Refusing to delete from `{$this->table}` without a condition; "
+                . "add where()/filter(), or use where('1 = 1') to delete every row deliberately"
+            );
+        }
+
         $sql = $this->toSql();
         $this->logQuery($sql);
 

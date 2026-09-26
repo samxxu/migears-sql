@@ -108,6 +108,9 @@ trait HasWhereClause
 
         $this->filterPlaceholders = [];
         foreach ($this->filterParams as $key => $_value) {
+            // Validate the key before extracting the field name: a malformed key
+            // must raise SqlException, not an undefined-array-key warning.
+            $operator = $this->parseFilterOperator($key);
             $field = $this->extractFilterField($key);
             $base = 'f_' . $field;
             $name = $base;
@@ -119,7 +122,6 @@ trait HasWhereClause
             $used[$name] = true;
             $this->filterPlaceholders[$key] = $name;
 
-            $operator = $this->parseFilterOperator($key);
             $segments[] = "`{$field}` {$operator} :{$name}";
         }
 
@@ -135,7 +137,7 @@ trait HasWhereClause
      */
     private function parseFilterOperator(string $key): string
     {
-        if (!preg_match('/^([\w]+)([!<>=]{0,2})$/', $key, $matches)) {
+        if (!preg_match('/^([\w]+)([!<>=]{0,2})$/D', $key, $matches)) {
             throw new SqlException("Invalid filter expression: {$key}");
         }
 

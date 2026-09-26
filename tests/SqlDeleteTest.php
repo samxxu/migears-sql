@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace MiGears\Sql\Tests;
 
+use MiGears\Sql\Exception\SqlException;
+
 class SqlDeleteTest extends TestCase
 {
     public function testDeleteById(): void
@@ -49,9 +51,27 @@ class SqlDeleteTest extends TestCase
         $this->assertEquals(0, $affected);
     }
 
-    public function testDeleteAllRows(): void
+    public function testDeleteWithoutConditionThrowsException(): void
     {
-        $affected = $this->sql->delete('users')->execute();
+        // A bare delete() must not be able to empty a table by accident.
+        $this->expectException(SqlException::class);
+        $this->sql->delete('users')->execute();
+    }
+
+    public function testDeleteWithoutConditionLeavesTableIntact(): void
+    {
+        try {
+            $this->sql->delete('users')->execute();
+        } catch (SqlException) {
+            // expected
+        }
+
+        $this->assertEquals(5, $this->sql->select()->from('users')->count());
+    }
+
+    public function testDeleteAllRowsWithExplicitCondition(): void
+    {
+        $affected = $this->sql->delete('users')->where('1 = 1')->execute();
 
         $this->assertEquals(5, $affected);
         $this->assertEquals(0, $this->sql->select()->from('users')->count());

@@ -426,4 +426,20 @@ class SqlSelectTest extends TestCase
         $this->expectException(SqlException::class);
         $sql->select()->from('no_such_table')->execute();
     }
+
+    public function testFilterKeyWithTrailingNewlineIsRejected(): void
+    {
+        // Without the D modifier a trailing newline satisfies $, so "name\n"
+        // was silently accepted as the field "name".
+        $this->expectException(SqlException::class);
+        $this->sql->select()->from('users')->filter(["name\n" => 'Alice'])->execute();
+    }
+
+    public function testFilterKeyWithLeadingOperatorThrowsException(): void
+    {
+        // A key that does not start with a field name must raise SqlException,
+        // not an undefined-array-key warning followed by a TypeError.
+        $this->expectException(SqlException::class);
+        $this->sql->select()->from('users')->filter(['!foo' => 1])->execute();
+    }
 }

@@ -81,9 +81,20 @@ class SqlUpdate
 
     /**
      * Executes the UPDATE, returns the number of affected rows.
+     *
+     * Refuses to run without a condition, so an accidental update()->execute()
+     * cannot rewrite a whole table. Add an explicit condition such as
+     * where('1 = 1') to update every row on purpose.
      */
     public function execute(): int
     {
+        if ($this->buildWhere() === '') {
+            throw new SqlException(
+                "Refusing to update `{$this->table}` without a condition; "
+                . "add where()/filter(), or use where('1 = 1') to update every row deliberately"
+            );
+        }
+
         $sql = $this->toSql();
         $this->logUpdateQuery($sql);
 

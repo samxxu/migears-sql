@@ -147,12 +147,24 @@ $sql->update('users')
     ->execute();
 ```
 
+Like `delete()`, `update()` refuses to run without a condition, so `update('users')->set([...])->execute()` cannot rewrite every row by accident and throws `SqlException`. To update every row on purpose, pass an explicit condition:
+
+```php
+$affected = $sql->update('users')->set(['status' => 0])->where('1 = 1')->execute();
+```
+
 ### DELETE
 
 ```php
 $affected = $sql->delete('users')
     ->filter(['id' => 1])
     ->execute();
+```
+
+`delete()` refuses to run without a condition, so an accidental bare `delete('users')->execute()` cannot empty a table and throws `SqlException` instead. To delete every row on purpose, pass an explicit condition:
+
+```php
+$affected = $sql->delete('users')->where('1 = 1')->execute();
 ```
 
 ## Architecture
@@ -351,12 +363,24 @@ $sql->update('users')
     ->execute();
 ```
 
+与 `delete()` 一样，`update()` 在没有任何条件时会拒绝执行，因此 `update('users')->set([...])->execute()` 不会误改全表，而是抛 `SqlException`。确实要更新全部行时，请显式给出条件：
+
+```php
+$affected = $sql->update('users')->set(['status' => 0])->where('1 = 1')->execute();
+```
+
 ### DELETE
 
 ```php
 $affected = $sql->delete('users')
     ->filter(['id' => 1])
     ->execute();
+```
+
+`delete()` 在没有任何条件时会拒绝执行，因此误写的 `delete('users')->execute()` 不会清空整张表，而是抛 `SqlException`。确实要删除全部行时，请显式给出条件：
+
+```php
+$affected = $sql->delete('users')->where('1 = 1')->execute();
 ```
 
 ## 架构
