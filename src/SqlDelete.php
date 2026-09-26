@@ -7,6 +7,7 @@ namespace MiGears\Sql;
 use PDO;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use MiGears\Sql\Exception\SqlException;
 
 /**
  * DELETE query builder.
@@ -46,18 +47,23 @@ class SqlDelete
         $this->logQuery($sql);
 
         $stmt = $this->pdo->prepare($sql);
+        if ($stmt === false) {
+            throw new SqlException("Failed to prepare statement: {$sql}");
+        }
         $this->bindAllParams($stmt);
-        $stmt->execute();
+        if (!$stmt->execute()) {
+            throw new SqlException("Failed to execute statement: {$sql}");
+        }
 
         return $stmt->rowCount();
     }
 
-    private function getLogger(): LoggerInterface
+    protected function getLogger(): LoggerInterface
     {
         return $this->logger;
     }
 
-    private function getPdo(): PDO
+    protected function getPdo(): PDO
     {
         return $this->pdo;
     }

@@ -18,11 +18,15 @@ use MiGears\Sql\Exception\SqlException;
  *   - filter():  array keys with operator suffix, auto-generates conditions
  *
  * filter operator suffix examples:
- *   ['status' => 1]        => `status` = :status
- *   ['age>' => 18]         => `age` > :age
- *   ['age<' => 30]         => `age` < :age
- *   ['name!' => 'foo']     => `name` != :name
- *   ['score>=' => 60]      => `score` >= :score
+ *   ['status' => 1]        => `status` = :f_status
+ *   ['age>' => 18]         => `age` > :f_age
+ *   ['age<' => 30]         => `age` < :f_age
+ *   ['name!' => 'foo']     => `name` != :f_name
+ *   ['score>=' => 60]      => `score` >= :f_score
+ *
+ * Filter placeholders are prefixed with f_ (and suffixed _2, _3, ... when two
+ * conditions target the same field), so they never collide with where()/bind()
+ * parameters. filter() accepts unqualified column names only.
  */
 trait HasWhereClause
 {
@@ -43,17 +47,20 @@ trait HasWhereClause
     abstract protected function getPdo(): PDO;
 
     /**
-     * Sets the raw WHERE condition.
+     * Sets the raw WHERE condition, replacing any condition set before.
+     *
+     * The parameters are replaced together with the condition: a second where()
+     * call describes a different condition, so keeping the earlier parameters
+     * would leave stale placeholders behind and break the bind count.
+     * Use bind() to add parameters for the current condition.
      *
      * @param string $condition Condition string (without WHERE keyword), e.g. "id = :id AND status = :status"
-     * @param array<string, mixed> $params Optional bind parameters (equivalent to calling bind() immediately after)
+     * @param array<string, mixed> $params Bind parameters for this condition (equivalent to calling bind() immediately after)
      */
     public function where(string $condition, array $params = []): static
     {
         $this->whereClause = $condition;
-        if ($params !== []) {
-            $this->bindParams = array_merge($this->bindParams, $params);
-        }
+        $this->bindParams = $params;
         return $this;
     }
 

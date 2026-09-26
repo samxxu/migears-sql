@@ -88,6 +88,9 @@ class SqlUpdate
         $this->logUpdateQuery($sql);
 
         $stmt = $this->pdo->prepare($sql);
+        if ($stmt === false) {
+            throw new SqlException("Failed to prepare statement: {$sql}");
+        }
 
         // Bind SET parameters (set_ prefix avoids conflicts with WHERE parameters)
         foreach ($this->setValues as $key => $value) {
@@ -95,7 +98,9 @@ class SqlUpdate
         }
 
         $this->bindAllParams($stmt);
-        $stmt->execute();
+        if (!$stmt->execute()) {
+            throw new SqlException("Failed to execute statement: {$sql}");
+        }
 
         return $stmt->rowCount();
     }
@@ -106,12 +111,12 @@ class SqlUpdate
         $this->logger->debug('SQL: {sql}', ['sql' => $sql, 'params' => $params]);
     }
 
-    private function getLogger(): LoggerInterface
+    protected function getLogger(): LoggerInterface
     {
         return $this->logger;
     }
 
-    private function getPdo(): PDO
+    protected function getPdo(): PDO
     {
         return $this->pdo;
     }

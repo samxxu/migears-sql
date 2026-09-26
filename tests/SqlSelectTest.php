@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace MiGears\Sql\Tests;
 
+use PDO;
+use MiGears\Sql\SqlBuilder;
 use MiGears\Sql\Exception\RecordNotFoundException;
 use MiGears\Sql\Exception\SqlException;
 
@@ -394,5 +396,34 @@ class SqlSelectTest extends TestCase
         // so subsequent calls to execute() still return all matching rows.
         $all = $select->execute();
         $this->assertCount(5, $all);
+    }
+
+    public function testSecondWhereCallReplacesConditionAndParameters(): void
+    {
+        // The second where() replaces the condition, so the first condition's
+        // parameter must be dropped too — otherwise the stale :id placeholder
+        // stays bound and the bind count no longer matches the SQL.
+        $select = $this->sql->select()
+            ->from('users')
+            ->where('id = :id', ['id' => 1])
+            ->where('name = :name', ['name' => 'Alice']);
+
+        $this->assertSame('SELECT * FROM users WHERE name = :name', $select->toSql());
+
+        $row = $select->single();
+        $this->assertNotNull($row);
+        $this->assertEquals('Alice', $row['name']);
+    }
+
+    public function testSilentModePrepareFailureThrowsSqlException(): void
+    {
+        // In ERRMODE_SILENT prepare() returns false instead of throwing;
+        // the builder must raise SqlException rather than a TypeError.
+        $pdo = new PDO('sqlite::memory:');
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+        $sql = new SqlBuilder($pdo);
+
+        $this->expectException(SqlException::class);
+        $sql->select()->from('no_such_table')->execute();
     }
 }

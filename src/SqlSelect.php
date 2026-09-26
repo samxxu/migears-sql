@@ -31,6 +31,7 @@ class SqlSelect
     private ?int $limit = null;
     private ?int $offset = null;
 
+    /** @param string|array<string>|null $fields */
     public function __construct(
         private readonly PDO $pdo,
         private readonly LoggerInterface $logger = new NullLogger(),
@@ -115,6 +116,9 @@ class SqlSelect
         $this->logQuery($sql);
 
         $stmt = $this->pdo->prepare($sql);
+        if ($stmt === false) {
+            throw new SqlException("Failed to prepare statement: {$sql}");
+        }
         $this->bindAllParams($stmt);
         $stmt->execute();
 
@@ -174,6 +178,9 @@ class SqlSelect
 
         $this->logQuery($sql);
         $stmt = $this->pdo->prepare($sql);
+        if ($stmt === false) {
+            throw new SqlException("Failed to prepare statement: {$sql}");
+        }
         $this->bindAllParams($stmt);
         $stmt->execute();
 
@@ -209,12 +216,12 @@ class SqlSelect
         }
     }
 
-    private function getLogger(): LoggerInterface
+    protected function getLogger(): LoggerInterface
     {
         return $this->logger;
     }
 
-    private function getPdo(): PDO
+    protected function getPdo(): PDO
     {
         return $this->pdo;
     }

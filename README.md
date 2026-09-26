@@ -89,12 +89,14 @@ $result = $sql->select()->from('users')->paginate(1, 20);
 
 | Suffix | Operator | Example | Generated SQL |
 |--------|----------|---------|---------------|
-| (none) | = | `['status' => 1]` | `` `status` = :status `` |
-| `>` | > | `['age>' => 18]` | `` `age` > :age `` |
-| `<` | < | `['age<' => 30]` | `` `age` < :age `` |
-| `>=` | >= | `['age>=' => 18]` | `` `age` >= :age `` |
-| `<=` | <= | `['age<=' => 30]` | `` `age` <= :age `` |
-| `!` / `<>` / `><` | != | `['status!' => 0]` | `` `status` != :status `` |
+| (none) | = | `['status' => 1]` | `` `status` = :f_status `` |
+| `>` | > | `['age>' => 18]` | `` `age` > :f_age `` |
+| `<` | < | `['age<' => 30]` | `` `age` < :f_age `` |
+| `>=` | >= | `['age>=' => 18]` | `` `age` >= :f_age `` |
+| `<=` | <= | `['age<=' => 30]` | `` `age` <= :f_age `` |
+| `!` / `<>` / `><` | != | `['status!' => 0]` | `` `status` != :f_status `` |
+
+Filter placeholders are named `f_{field}`, gaining a `_2`, `_3`, ... suffix when two conditions target the same field, so they never collide with `where()` / `bind()` parameters. `filter()` accepts unqualified column names only — `['u.id' => 1]` is rejected; use `where()` for qualified names in JOIN queries.
 
 ### Multi-Table / JOIN Queries
 
@@ -291,12 +293,14 @@ $result = $sql->select()->from('users')->paginate(1, 20);
 
 | 后缀 | 操作符 | 示例 | 生成 |
 |------|--------|------|------|
-| （无） | = | `['status' => 1]` | `` `status` = :status `` |
-| `>` | > | `['age>' => 18]` | `` `age` > :age `` |
-| `<` | < | `['age<' => 30]` | `` `age` < :age `` |
-| `>=` | >= | `['age>=' => 18]` | `` `age` >= :age `` |
-| `<=` | <= | `['age<=' => 30]` | `` `age` <= :age `` |
-| `!` / `<>` / `><` | != | `['status!' => 0]` | `` `status` != :status `` |
+| （无） | = | `['status' => 1]` | `` `status` = :f_status `` |
+| `>` | > | `['age>' => 18]` | `` `age` > :f_age `` |
+| `<` | < | `['age<' => 30]` | `` `age` < :f_age `` |
+| `>=` | >= | `['age>=' => 18]` | `` `age` >= :f_age `` |
+| `<=` | <= | `['age<=' => 30]` | `` `age` <= :f_age `` |
+| `!` / `<>` / `><` | != | `['status!' => 0]` | `` `status` != :f_status `` |
+
+filter 占位符命名为 `f_{字段名}`，同一字段出现两个条件时追加 `_2`、`_3` 后缀，因此永远不会与 `where()` / `bind()` 的参数冲突。`filter()` 只接受非限定列名，`['u.id' => 1]` 会被拒绝；JOIN 查询中的限定列名请用 `where()`。
 
 ### 多表 / JOIN 查询
 
