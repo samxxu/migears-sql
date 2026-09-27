@@ -120,7 +120,9 @@ class SqlSelect
             throw new SqlException("Failed to prepare statement: {$sql}");
         }
         $this->bindAllParams($stmt);
-        $stmt->execute();
+        if (!$stmt->execute()) {
+            throw new SqlException("Failed to execute statement: {$sql}");
+        }
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
@@ -182,7 +184,9 @@ class SqlSelect
             throw new SqlException("Failed to prepare statement: {$sql}");
         }
         $this->bindAllParams($stmt);
-        $stmt->execute();
+        if (!$stmt->execute()) {
+            throw new SqlException("Failed to execute statement: {$sql}");
+        }
 
         return (int) $stmt->fetchColumn();
     }

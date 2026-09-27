@@ -129,4 +129,14 @@ class SqlInsertTest extends TestCase
         $this->expectException(SqlException::class);
         $sql->insert('t')->values(['id' => 1])->execute();
     }
+
+    public function testInsertWithBacktickInTableNameThrowsException(): void
+    {
+        // The table name is spliced inside backticks, so it must be a bare
+        // identifier like the column names are.
+        $this->expectException(SqlException::class);
+        $this->sql->insert("users` (id) VALUES (1) -- ")
+            ->values(['name' => 'x'])
+            ->toSql();
+    }
 }

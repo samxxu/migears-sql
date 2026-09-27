@@ -54,9 +54,10 @@ class SqlInsert
             throw new SqlException('Insert values must be provided via values()');
         }
 
+        $this->assertValidIdentifier($this->table, 'table');
         $columns = array_keys($this->values);
         foreach ($columns as $column) {
-            $this->assertValidColumn((string) $column);
+            $this->assertValidIdentifier((string) $column, 'column');
         }
         $cols = '`' . implode('`, `', $columns) . '`';
         $placeholders = ':' . implode(', :', $columns);
@@ -110,13 +111,14 @@ class SqlInsert
     }
 
     /**
-     * Rejects column names that could break out of the backtick-quoted
-     * identifier (e.g. "name` , email = 'x' -- ").
+     * Rejects a table or column name that could break out of the backtick-quoted
+     * identifier (e.g. "name` , email = 'x' -- "). Table identifiers are wrapped
+     * in backticks and have no other guard, so this is what keeps them safe.
      */
-    private function assertValidColumn(string $column): void
+    private function assertValidIdentifier(string $identifier, string $kind): void
     {
-        if (!preg_match('/^\w+$/', $column)) {
-            throw new SqlException("Invalid column name: {$column}");
+        if (!preg_match('/^\w+$/', $identifier)) {
+            throw new SqlException("Invalid {$kind} name: {$identifier}");
         }
     }
 }

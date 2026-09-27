@@ -93,4 +93,14 @@ class SqlDeleteTest extends TestCase
         $sql = $this->sql->delete('users')->toSql();
         $this->assertEquals('DELETE FROM `users`', $sql);
     }
+
+    public function testDeleteWithBacktickInTableNameThrowsException(): void
+    {
+        // The table name is spliced inside backticks, so it must be a bare
+        // identifier like the column names are.
+        $this->expectException(SqlException::class);
+        $this->sql->delete('users`; DROP TABLE users -- ')
+            ->filter(['id' => 1])
+            ->toSql();
+    }
 }

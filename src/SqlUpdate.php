@@ -35,10 +35,13 @@ class SqlUpdate
     }
 
     /**
-     * Sets the fields to update.
+     * Sets the fields to update, replacing anything set before.
      *
      * - Pass an array: key-value pairs, generates `col` = :col form
      * - Pass a string: raw SET expression (e.g. "counter = counter + 1")
+     *
+     * The two forms are mutually exclusive: the last set() call wins, matching
+     * the replace semantics of where() and values().
      *
      * @param array<string, mixed>|string $data
      */
@@ -46,8 +49,10 @@ class SqlUpdate
     {
         if (is_string($data)) {
             $this->setRaw = $data;
+            $this->setValues = [];
         } else {
             $this->setValues = $data;
+            $this->setRaw = null;
         }
         return $this;
     }
@@ -61,6 +66,8 @@ class SqlUpdate
             throw new SqlException('Update data must be provided via set()');
         }
 
+        $this->assertValidIdentifier($this->table, 'table');
+
         $segments = [];
 
         if ($this->setRaw !== null) {
@@ -68,7 +75,7 @@ class SqlUpdate
         }
 
         foreach (array_keys($this->setValues) as $key) {
-            $this->assertValidColumn((string) $key);
+            $this->assertValidIdentifier((string) $key, 'column');
             $segments[] = "`{$key}` = :set_{$key}";
         }
 
@@ -133,13 +140,14 @@ class SqlUpdate
     }
 
     /**
-     * Rejects column names that could break out of the backtick-quoted
-     * identifier (e.g. "name` = 'HACKED' -- ").
+     * Rejects a table or column name that could break out of the backtick-quoted
+     * identifier (e.g. "name` = 'HACKED' -- "). Table identifiers are wrapped in
+     * backticks and have no other guard, so this is what keeps them safe.
      */
-    private function assertValidColumn(string $column): void
+    private function assertValidIdentifier(string $identifier, string $kind): void
     {
-        if (!preg_match('/^\w+$/', $column)) {
-            throw new SqlException("Invalid column name: {$column}");
+        if (!preg_match('/^\w+$/', $identifier)) {
+            throw new SqlException("Invalid {$kind} name: {$identifier}");
         }
     }
 }

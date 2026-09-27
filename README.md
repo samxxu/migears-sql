@@ -123,6 +123,8 @@ $rows = $sql->select(['u.name', 'p.title'])
 
 **Design rationale**: No dedicated `join()` methods — `from()` is flexible enough for any SQL syntax, keeping the API minimal.
 
+`from()` is passed through verbatim, so it is neither quoted nor validated: treat it as a developer-controlled SQL fragment. The table name handed to `insert()`, `update()` and `delete()` is different — it is wrapped in backticks and must be a bare identifier (`^\w+$`), otherwise `SqlException` is thrown. Column names given to `values()` / `set()` follow the same rule.
+
 ### INSERT
 
 ```php
@@ -152,6 +154,8 @@ Like `delete()`, `update()` refuses to run without a condition, so `update('user
 ```php
 $affected = $sql->update('users')->set(['status' => 0])->where('1 = 1')->execute();
 ```
+
+The array and string forms of `set()` are mutually exclusive: the last call wins, so a raw expression and a value array never mix.
 
 ### DELETE
 
@@ -339,6 +343,8 @@ $rows = $sql->select(['u.name', 'p.title'])
 
 **设计理由**：不提供专门的 `join()` 方法 — `from()` 足以表达任意 SQL 语法，保持 API 极简。
 
+`from()` 原样透传，因此既不加引号也不做校验：请把它当作开发者可控的 SQL 片段。传给 `insert()`、`update()`、`delete()` 的表名则不同 —— 它会被反引号包裹，必须是裸标识符（`^\w+$`），否则抛 `SqlException`。`values()` / `set()` 的列名遵循同一规则。
+
 ### INSERT
 
 ```php
@@ -368,6 +374,8 @@ $sql->update('users')
 ```php
 $affected = $sql->update('users')->set(['status' => 0])->where('1 = 1')->execute();
 ```
+
+`set()` 的数组形式与字符串形式互斥：以最后一次调用为准，原始表达式与键值数组不会混用。
 
 ### DELETE
 

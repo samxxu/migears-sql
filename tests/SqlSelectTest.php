@@ -442,4 +442,37 @@ class SqlSelectTest extends TestCase
         $this->expectException(SqlException::class);
         $this->sql->select()->from('users')->filter(['!foo' => 1])->execute();
     }
+
+    public function testSilentModeFailedExecuteThrowsSqlException(): void
+    {
+        // prepare() succeeds but execute() fails (a bound parameter the
+        // statement never uses). In ERRMODE_SILENT that used to come back as an
+        // empty result set, indistinguishable from "no rows".
+        $sql = $this->silentBuilder();
+
+        $this->expectException(SqlException::class);
+        $sql->select()->from('users')->where('1 = 1')->bind(['unused' => 1])->execute();
+    }
+
+    public function testSilentModeFailedCountThrowsSqlException(): void
+    {
+        $sql = $this->silentBuilder();
+
+        $this->expectException(SqlException::class);
+        $sql->select(['count(*)'])->from('users')->where('1 = 1')->bind(['unused' => 1])->count();
+    }
+
+    /**
+     * A builder on a connection in ERRMODE_SILENT, where PDO returns false
+     * instead of throwing on failure.
+     */
+    private function silentBuilder(): SqlBuilder
+    {
+        $pdo = new PDO('sqlite::memory:');
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+        $pdo->exec('CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT)');
+        $pdo->exec("INSERT INTO users (id, name) VALUES (1, 'Alice')");
+
+        return new SqlBuilder($pdo);
+    }
 }

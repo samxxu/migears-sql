@@ -29,9 +29,16 @@ class SqlDelete
 
     /**
      * Generates the DELETE SQL string.
+     *
+     * The table name is wrapped in backticks, so it must be a bare identifier;
+     * anything else could break out of the quoting and is rejected here.
      */
     public function toSql(): string
     {
+        if (!preg_match('/^\w+$/', $this->table)) {
+            throw new SqlException("Invalid table name: {$this->table}");
+        }
+
         $sql = "DELETE FROM `{$this->table}`";
         $sql .= $this->buildWhere();
 

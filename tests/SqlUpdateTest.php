@@ -156,4 +156,33 @@ class SqlUpdateTest extends TestCase
         $this->assertEquals(5, $affected);
         $this->assertEquals(0, $this->sql->select()->from('users')->filter(['status' => 1])->count());
     }
+
+    public function testUpdateWithBacktickInTableNameThrowsException(): void
+    {
+        $this->expectException(SqlException::class);
+        $this->sql->update("users` SET `name`='HACKED' -- ")
+            ->set(['name' => 'x'])
+            ->filter(['id' => 1])
+            ->toSql();
+    }
+
+    public function testSetReplacesTheOtherKind(): void
+    {
+        // The raw and array forms are mutually exclusive: the last set() wins.
+        $fromRaw = $this->sql->update('users')
+            ->set('age = age + 1')
+            ->set(['name' => 'Bob'])
+            ->filter(['id' => 1])
+            ->toSql();
+        $this->assertStringContainsString('`name` = :set_name', $fromRaw);
+        $this->assertStringNotContainsString('age = age + 1', $fromRaw);
+
+        $fromArray = $this->sql->update('users')
+            ->set(['name' => 'Bob'])
+            ->set('age = age + 1')
+            ->filter(['id' => 1])
+            ->toSql();
+        $this->assertStringContainsString('age = age + 1', $fromArray);
+        $this->assertStringNotContainsString('`name` = :set_name', $fromArray);
+    }
 }
