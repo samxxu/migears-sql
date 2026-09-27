@@ -462,6 +462,21 @@ class SqlSelectTest extends TestCase
         $sql->select(['count(*)'])->from('users')->where('1 = 1')->bind(['unused' => 1])->count();
     }
 
+    public function testFromSplicesAJoinExpressionRaw(): void
+    {
+        // P3-2: from() is the one table slot left raw on purpose — it also
+        // accepts JOIN and alias expressions ("users u"), which the DML
+        // builders' single validated table name does not. where() (not filter)
+        // is the parameterised slot for a JOIN query; never pass user input to
+        // from().
+        $sql = $this->sql->select(['u.id'])
+            ->from('users u')
+            ->where('u.id = :id', ['id' => 1])
+            ->toSql();
+
+        $this->assertSame('SELECT u.id FROM users u WHERE u.id = :id', $sql);
+    }
+
     public function testFilterRejectsQualifiedColumnName(): void
     {
         // filter() accepts unqualified column names only; a qualified name is
