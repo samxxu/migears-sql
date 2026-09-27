@@ -462,6 +462,26 @@ class SqlSelectTest extends TestCase
         $sql->select(['count(*)'])->from('users')->where('1 = 1')->bind(['unused' => 1])->count();
     }
 
+    public function testFilterRejectsQualifiedColumnName(): void
+    {
+        // filter() accepts unqualified column names only; a qualified name is
+        // rejected, and where() is the documented alternative in JOIN queries.
+        try {
+            $this->sql->select()->from('users u')->filter(['u.id' => 1])->execute();
+            $this->fail('filter() should have rejected the qualified column name');
+        } catch (SqlException $e) {
+            $this->assertStringContainsString('Invalid filter expression', $e->getMessage());
+        }
+
+        $row = $this->sql->select(['u.name'])
+            ->from('users u')
+            ->where('u.id = :id', ['id' => 1])
+            ->single();
+
+        $this->assertNotNull($row);
+        $this->assertSame('Alice', $row['name']);
+    }
+
     /**
      * A builder on a connection in ERRMODE_SILENT, where PDO returns false
      * instead of throwing on failure.
