@@ -25,7 +25,7 @@ Date: 2026-09-29
 
 | Entry point | Behaviour |
 |---|---|
-| `SqlBuilder::__construct(PDO $pdo, LoggerInterface $logger = new NullLogger())` | Entry point, usable right after `new`; the logger is optional and defaults to `NullLogger`. |
+| `SqlBuilder::__construct(PDO $pdo, LoggerInterface $logger)` | Entry point, usable right after `new`; the logger is required, so a call site that omits it fails at assembly time instead of running silently. |
 | `SqlBuilder::select(string\|array\|null $fields = null): SqlSelect` | `null` → `*`, array → `implode(', ', ...)`, string → verbatim. |
 | `SqlBuilder::insert\|update\|delete(string $table)` | New `SqlInsert` / `SqlUpdate` / `SqlDelete` builder for `$table`. |
 | `SqlBuilder::getPdo(): PDO` | Returns the borrowed connection unchanged. |
@@ -89,7 +89,7 @@ Named-placeholder rules:
 
 Integration tests run against an in-memory SQLite `users` table seeded with five rows (`tests/TestCase.php`), with `failOnWarning` / `failOnNotice` / `failOnDeprecation` / `failOnRisky` enabled.
 
-- `SqlBuilderTest` — each factory returns the right builder type, `getPdo()` returns the same instance, construction without a logger works.
+- `SqlBuilderTest` — each factory returns the right builder type, `getPdo()` returns the same instance, omitting the logger from any constructor fails at assembly time.
 - `SqlSelectTest` — all-rows / string / array field selection; `where()` with inline and separate `bind()`; all six `filter()` operators plus combined conditions; `orderBy`, `limit`, `limit` + `offset`, `groupBy`; `single()` (and that it does not disturb the caller's limit), `singleOrFail()` (found and `RecordNotFoundException`), `count()` (all / filtered / grouped), `paginate()` plus its bounds checks; `toSql()` shape; missing `from()`; invalid filter keys; empty result; same-field filter placeholder uniqueness; `where()` + `filter()` same-field isolation; a second `where()` replacing parameters; silent-mode prepare/execute failures; `from()` raw JOIN splice; `filter()` rejecting a qualified name.
 - `SqlInsertTest` — insert with `lastInsertId()` and `rowCount()`, `null` values, `toSql()`, missing `values()`, self chaining, backtick/space column rejection, backtick table rejection, `lastInsertId()` before and after later inserts, silent-mode failure.
 - `SqlUpdateTest` — single and multiple columns, `where()` bind, `filter()`, raw SET string, no match, `toSql()`, missing `set()`, `set_`/WHERE isolation, identifier rejection, no-condition refusal (rows left unchanged), update-all with an explicit condition, `set()` form replacement.
@@ -105,7 +105,6 @@ Contract changes currently queued in the module's own issue record (`issues/`), 
 - `P3-4` — table names are validated with `^\w+$` while column names are not restricted the same way (identifier-validation asymmetry).
 - `P3-5` — `offset()` without `limit()` emits a bare `OFFSET` clause, which is a syntax error in SQLite and MySQL.
 - `P3-6` — `where('', ['x' => 1])` still binds `:x` although the empty condition generates no SQL.
-- `G1` (accepted) — a missing logger is silent by construction: every constructor defaults the argument to a live `NullLogger`.
 
 ---
 
@@ -136,7 +135,7 @@ Date: 2026-09-29
 
 | 入口 | 行为 |
 |---|---|
-| `SqlBuilder::__construct(PDO $pdo, LoggerInterface $logger = new NullLogger())` | 入口，`new` 后即可用；logger 可选，默认为 `NullLogger`。 |
+| `SqlBuilder::__construct(PDO $pdo, LoggerInterface $logger)` | 入口，`new` 后即可用；logger 必填，省略它的调用点在装配期即失败，而不是静默运行。 |
 | `SqlBuilder::select(string\|array\|null $fields = null): SqlSelect` | `null` → `*`，数组 → `implode(', ', ...)`，字符串 → 原样。 |
 | `SqlBuilder::insert\|update\|delete(string $table)` | 为 `$table` 新建 `SqlInsert` / `SqlUpdate` / `SqlDelete` 构建器。 |
 | `SqlBuilder::getPdo(): PDO` | 原样返回借用的连接。 |
@@ -200,7 +199,7 @@ Date: 2026-09-29
 
 集成测试跑在内存 SQLite 的 `users` 表上，预置五行数据（`tests/TestCase.php`），并开启 `failOnWarning` / `failOnNotice` / `failOnDeprecation` / `failOnRisky`。
 
-- `SqlBuilderTest` —— 各工厂返回对应的构建器类型，`getPdo()` 返回同一实例，无 logger 也能构造。
+- `SqlBuilderTest` —— 各工厂返回对应的构建器类型，`getPdo()` 返回同一实例，任何构造函数省略 logger 都会在装配期失败。
 - `SqlSelectTest` —— 全表 / 字符串 / 数组字段选择；`where()` 配合内联与分开的 `bind()`；全部六种 `filter()` 操作符及组合条件；`orderBy`、`limit`、`limit` + `offset`、`groupBy`；`single()`（且不干扰调用方的 limit）、`singleOrFail()`（命中与 `RecordNotFoundException`）、`count()`（全表 / 带条件 / 带分组）、`paginate()` 及其边界校验；`toSql()` 形态；缺 `from()`；非法 filter 键；空结果；同字段 filter 占位符唯一；`where()` + `filter()` 同字段隔离；第二次 `where()` 替换参数；SILENT 模式 prepare/execute 失败；`from()` 原样拼接 JOIN；`filter()` 拒绝限定列名。
 - `SqlInsertTest` —— 插入并取 `lastInsertId()` 与 `rowCount()`、`null` 值、`toSql()`、缺 `values()`、self 链式、反引号/空格列名被拒、反引号表名被拒、后续插入前后 `lastInsertId()` 稳定、SILENT 模式失败。
 - `SqlUpdateTest` —— 单列与多列、`where()` 绑定、`filter()`、原始 SET 字符串、无匹配、`toSql()`、缺 `set()`、`set_`/WHERE 隔离、标识符被拒、无条件拒绝（行保持不变）、带显式条件更新全表、`set()` 形式替换。
@@ -216,4 +215,3 @@ Date: 2026-09-29
 - `P3-4` —— 表名用 `^\w+$` 校验，而列名的限制与之不同（标识符校验不对称）。
 - `P3-5` —— 不带 `limit()` 的 `offset()` 会输出裸 `OFFSET` 子句，在 SQLite 与 MySQL 中是语法错误。
 - `P3-6` —— `where('', ['x' => 1])` 仍绑定了 `:x`，而那个空条件不产生任何 SQL。
-- `G1`（accepted）—— 缺 logger 在构造上就是静默的：每个构造函数都把参数默认成一个活的 `NullLogger`。
