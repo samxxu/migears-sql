@@ -6,21 +6,22 @@ namespace MiGears\Sql;
 
 use PDO;
 use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 
 /**
  * SQL query builder entry point (factory class).
  *
  * Accepts a PDO instance, zero global dependencies, ready to use after new.
+ * The logger is required: a call site that forgets it fails here at assembly
+ * time instead of running on silently.
  *
- *   $sql = new SqlBuilder($pdo);
+ *   $sql = new SqlBuilder($pdo, $logger);
  *   $rows = $sql->select()->from('users')->where('id = :id', ['id' => 1])->execute();
  */
 class SqlBuilder
 {
     public function __construct(
         private readonly PDO $pdo,
-        private readonly LoggerInterface $logger = new NullLogger(),
+        private readonly LoggerInterface $logger,
     ) {
     }
 

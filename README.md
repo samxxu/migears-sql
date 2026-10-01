@@ -13,7 +13,7 @@ Lightweight SQL query builder for PHP 8.1+, with zero mandatory dependencies (ex
 - **Minimalist API**: `$sql->select()->from('users')->filter(['status' => 1])->execute()`
 - **Zero global dependencies**: accepts a PDO instance in the constructor, ready to use after `new`
 - **Pure array returns**: no object mapping, simple and straightforward
-- **PSR-3 logging**: optional `LoggerInterface` injection, defaults to `NullLogger`
+- **PSR-3 logging**: a `LoggerInterface` is required and injected through the constructor
 - **Domain exceptions**: `SqlException` / `RecordNotFoundException`
 - **Single file < 300 lines**: every core file is short and easy to understand at a glance
 - **High test coverage**: integration tests with SQLite in-memory database
@@ -52,7 +52,8 @@ use MiGears\Sql\SqlBuilder;
 $pdo = new PDO('mysql:host=localhost;dbname=app', 'user', 'pass');
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-$sql = new SqlBuilder($pdo);
+// The logger is required and must be supplied by the caller.
+$sql = new SqlBuilder($pdo, $logger);
 ```
 
 ### SELECT
@@ -256,7 +257,7 @@ MIT
 - **极简 API**：`$sql->select()->from('users')->filter(['status' => 1])->execute()`
 - **零全局依赖**：构造函数接收 PDO 实例，new 了就能用
 - **纯数组返回**：不做对象映射，简单直接
-- **PSR-3 日志**：可选注入 LoggerInterface，默认 NullLogger
+- **PSR-3 日志**：`LoggerInterface` 为必填，通过构造函数注入
 - **领域异常**：SqlException / RecordNotFoundException
 - **单文件 < 300 行**：每个核心文件都很短，一眼看懂
 - **高测试覆盖率**：SQLite 内存数据库集成测试
@@ -293,7 +294,8 @@ use MiGears\Sql\SqlBuilder;
 $pdo = new PDO('mysql:host=localhost;dbname=app', 'user', 'pass');
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-$sql = new SqlBuilder($pdo);
+// logger 为必填，须由调用方提供。
+$sql = new SqlBuilder($pdo, $logger);
 ```
 
 ### SELECT

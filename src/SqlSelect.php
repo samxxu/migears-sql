@@ -7,7 +7,6 @@ namespace MiGears\Sql;
 use PDO;
 use PDOStatement;
 use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 use MiGears\Sql\Exception\SqlException;
 
 /**
@@ -34,7 +33,7 @@ class SqlSelect
     /** @param string|array<string>|null $fields */
     public function __construct(
         private readonly PDO $pdo,
-        private readonly LoggerInterface $logger = new NullLogger(),
+        private readonly LoggerInterface $logger,
         string|array|null $fields = null,
     ) {
         $this->fields = match (true) {
@@ -176,7 +175,11 @@ class SqlSelect
     }
 
     /**
-     * Counts the total number of matching records (ignores limit/offset/orderBy).
+     * Counts the matching records (ignores limit/offset/orderBy).
+     *
+     * When groupBy() is set it counts the groups instead of the rows: the
+     * statement is wrapped in a subquery, so COUNT(*) counts one row per group
+     * rather than every matching record.
      */
     public function count(): int
     {

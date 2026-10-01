@@ -6,6 +6,7 @@ namespace MiGears\Sql\Tests;
 
 use PDO;
 use PHPUnit\Framework\TestCase as BaseTestCase;
+use Psr\Log\NullLogger;
 use MiGears\Sql\SqlBuilder;
 
 abstract class TestCase extends BaseTestCase
@@ -22,7 +23,7 @@ abstract class TestCase extends BaseTestCase
         $this->createUsersTable();
         $this->seedUsers();
 
-        $this->sql = new SqlBuilder($this->pdo);
+        $this->sql = new SqlBuilder($this->pdo, new NullLogger());
     }
 
     protected function createUsersTable(): void

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MiGears\Sql\Tests;
 
 use PDO;
+use Psr\Log\NullLogger;
 use MiGears\Sql\SqlBuilder;
 use MiGears\Sql\Exception\SqlException;
 
@@ -124,7 +125,7 @@ class SqlInsertTest extends TestCase
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
         $pdo->exec('CREATE TABLE t (id INTEGER PRIMARY KEY)');
         $pdo->exec('INSERT INTO t (id) VALUES (1)');
-        $sql = new SqlBuilder($pdo);
+        $sql = new SqlBuilder($pdo, new NullLogger());
 
         $this->expectException(SqlException::class);
         $sql->insert('t')->values(['id' => 1])->execute();

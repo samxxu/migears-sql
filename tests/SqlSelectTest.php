@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MiGears\Sql\Tests;
 
 use PDO;
+use Psr\Log\NullLogger;
 use MiGears\Sql\SqlBuilder;
 use MiGears\Sql\Exception\RecordNotFoundException;
 use MiGears\Sql\Exception\SqlException;
@@ -471,7 +472,7 @@ class SqlSelectTest extends TestCase
         // the builder must raise SqlException rather than a TypeError.
         $pdo = new PDO('sqlite::memory:');
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
-        $sql = new SqlBuilder($pdo);
+        $sql = new SqlBuilder($pdo, new NullLogger());
 
         $this->expectException(SqlException::class);
         $sql->select()->from('no_such_table')->execute();
@@ -558,6 +559,6 @@ class SqlSelectTest extends TestCase
         $pdo->exec('CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT)');
         $pdo->exec("INSERT INTO users (id, name) VALUES (1, 'Alice')");
 
-        return new SqlBuilder($pdo);
+        return new SqlBuilder($pdo, new NullLogger());
     }
 }

@@ -6,7 +6,6 @@ namespace MiGears\Sql;
 
 use PDO;
 use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 use MiGears\Sql\Exception\SqlException;
 
 /**
@@ -23,7 +22,7 @@ class SqlDelete
     public function __construct(
         private readonly PDO $pdo,
         private readonly string $table,
-        private readonly LoggerInterface $logger = new NullLogger(),
+        private readonly LoggerInterface $logger,
     ) {
     }
 
