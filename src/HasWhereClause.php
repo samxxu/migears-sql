@@ -104,6 +104,22 @@ trait HasWhereClause
             foreach (array_keys($this->bindParams) as $name) {
                 $used[$name] = true;
             }
+        } elseif ($this->bindParams !== []) {
+            // An empty condition contributes no SQL, so these parameters have nowhere to land: the clause that
+            // was supposed to name their placeholders is not part of the statement. Binding them anyway is what
+            // made execute() fail afterwards with the driver's "column index out of range" — a message that
+            // names the driver rather than the call. Refusing here is the loud half of that same pair, and it
+            // catches every route to the state, including a bare bind() with no condition.
+            // 空条件不产生任何 SQL，因此这些参数无处落地：本应点名它们占位符的那个条件并不在语句里。照样
+            // 绑定它们，正是让 execute() 事后以驱动的「column index out of range」失败的原因——那句话点名的
+            // 是驱动，而不是这次调用。在这里拒绝，是把这一对补成响亮的一半；它也堵住了通往该状态的每一条
+            // 路径，包括不带任何条件就 bind()。
+            throw new SqlException(sprintf(
+                'An empty WHERE condition cannot carry bound parameter(s) %s: no condition means no '
+                . 'placeholder to bind them to.',
+                implode(', ', array_map(static fn (string $name): string => ':' . $name,
+                    array_keys($this->bindParams)))
+            ));
         }
 
         $this->filterPlaceholders = [];

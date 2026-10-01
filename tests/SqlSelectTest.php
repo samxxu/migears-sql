@@ -183,6 +183,56 @@ class SqlSelectTest extends TestCase
         $this->assertEquals('Diana', $rows[1]['name']);
     }
 
+    public function testOffsetWithoutLimitIsRefused(): void
+    {
+        // `OFFSET 1` with no `LIMIT` is a syntax error on SQLite and MySQL. The builder used to emit it and
+        // let the driver report `near "1": syntax error`, which named the SQL rather than the call.
+        // 不带 `LIMIT` 的 `OFFSET 1` 在 SQLite 与 MySQL 上是语法错误。此前构造器会把它输出，再让驱动报出
+        // 「near "1": syntax error」——那句话点名的是 SQL，而不是这次调用。
+        $query = $this->sql->select()->from('users')->offset(1);
+
+        $this->expectException(SqlException::class);
+        $this->expectExceptionMessage('offset() requires limit()');
+
+        $query->toSql();
+    }
+
+    public function testEmptyConditionWithBindParamsIsRefused(): void
+    {
+        // The empty condition contributes no SQL, so :x has no placeholder to bind to; the bind was attempted
+        // anyway and PDO reported `column index out of range`.
+        // 空条件不产生任何 SQL，因此 :x 没有可绑的占位符；绑定仍被尝试，PDO 报出「column index out of range」。
+        $query = $this->sql->select()->from('users')->where('', ['x' => 1]);
+
+        $this->expectException(SqlException::class);
+        $this->expectExceptionMessage('An empty WHERE condition cannot carry bound parameter(s) :x');
+
+        $query->execute();
+    }
+
+    public function testBindWithoutAnyConditionIsRefusedToo(): void
+    {
+        // The same guard catches the other route into that state: bind() addressed a placeholder that no
+        // condition ever wrote.
+        // 同一道守卫也堵住通往该状态的另一条路径：bind() 指向了一个从没有条件写出的占位符。
+        $query = $this->sql->select()->from('users')->bind(['x' => 1]);
+
+        $this->expectException(SqlException::class);
+        $this->expectExceptionMessage('An empty WHERE condition cannot carry bound parameter(s) :x');
+
+        $query->execute();
+    }
+
+    public function testEmptyConditionWithoutParamsStillRuns(): void
+    {
+        // where('') is a legitimate way to clear a condition, so the guard refuses only the pairing of an
+        // empty condition with parameters — the boundary the falsy case sits on.
+        // where('') 是清空条件的正当写法，因此守卫只拒绝「空条件 + 参数」这一对——也就是假值那一侧的分界。
+        $rows = $this->sql->select()->from('users')->where('')->execute();
+
+        $this->assertCount(5, $rows);
+    }
+
     public function testGroupBy(): void
     {
         $rows = $this->sql->select('status, COUNT(*) as cnt')

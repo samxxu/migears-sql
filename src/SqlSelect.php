@@ -86,6 +86,19 @@ class SqlSelect
             throw new SqlException('Table name must be specified via from()');
         }
 
+        if ($this->offset !== null && $this->limit === null) {
+            // `OFFSET n` with no `LIMIT` is a syntax error on SQLite and MySQL, so the builder refuses to emit
+            // the statement instead of handing the driver something it cannot parse and then reporting the
+            // driver's complaint. The fork was to throw here or to document it; throwing is the one that keeps
+            // the failure at the call that caused it.
+            // 不带 `LIMIT` 的 `OFFSET n` 在 SQLite 与 MySQL 上是语法错误，因此构造器拒绝输出该语句，而不是
+            // 把驱动无法解析的东西递给它、再转述驱动的抱怨。分岔是这里抛异常或写进文档；抛异常能让失败停在
+            // 引起它的那次调用上。
+            throw new SqlException(
+                'offset() requires limit(): OFFSET without LIMIT is a syntax error on SQLite and MySQL'
+            );
+        }
+
         $sql = "SELECT {$this->fields} FROM {$this->table}";
         $sql .= $this->buildWhere();
 

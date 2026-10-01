@@ -18,6 +18,24 @@ Lightweight SQL query builder for PHP 8.1+, with zero mandatory dependencies (ex
 - **Single file < 300 lines**: every core file is short and easy to understand at a glance
 - **High test coverage**: integration tests with SQLite in-memory database
 
+## Boundaries
+
+**In scope**
+
+- Building and executing SQL over a borrowed `PDO`: `select()` / `insert()` / `update()` /
+  `delete()`, `where()` / `filter()` / `bind()` / `orderBy()` / `limit()` / `groupBy()`,
+  `single()` / `singleOrFail()` / `count()` / `paginate()`.
+- Returning rows as plain arrays, and naming failures as `SqlException` / `RecordNotFoundException`.
+
+**Not in scope (by design)**
+
+- Owning or opening a connection — a `PDO` instance is passed in; this package never connects and
+  holds no configuration.
+- Domain objects, mapping and hydration — `migears/dao` turns rows into Domains; this layer knows
+  nothing about them.
+- Schema, migrations, transactions, connection pooling, or an ORM.
+- Filtering on qualified column names — `filter()` takes unqualified names only; use `where()` for JOIN queries.
+
 ## Installation
 
 ```bash
@@ -84,6 +102,11 @@ $rows = $sql->select()
 $result = $sql->select()->from('users')->paginate(1, 20);
 // ['records' => [...], 'total' => 100]
 ```
+
+Two degenerate inputs are refused instead of being handed to PDO, because each used to surface as a driver error that named the SQL rather than the call:
+
+- **`offset()` without `limit()`.** `OFFSET n` on its own is a syntax error on SQLite and MySQL, so `toSql()` throws `SqlException` (`offset() requires limit()`). Call `limit()` as well, or use `paginate()`.
+- **A condition that contributes no SQL while carrying bindings.** `where('', ['x' => 1])`, and a bare `bind()` with no condition at all, throw `SqlException` naming the parameter that had no placeholder to land on. `where('')` on its own is still a legitimate way to clear a condition.
 
 #### filter Operator Suffixes
 
@@ -238,6 +261,22 @@ MIT
 - **单文件 < 300 行**：每个核心文件都很短，一眼看懂
 - **高测试覆盖率**：SQLite 内存数据库集成测试
 
+## 边界
+
+**范围内**
+
+- 借助调用方传入的 `PDO` 构建并执行 SQL：`select()` / `insert()` / `update()` / `delete()`，
+  `where()` / `filter()` / `bind()` / `orderBy()` / `limit()` / `groupBy()`，
+  `single()` / `singleOrFail()` / `count()` / `paginate()`。
+- 以纯数组返回行，并以 `SqlException` / `RecordNotFoundException` 命名失败。
+
+**范围外（刻意不做）**
+
+- 拥有或打开连接 —— `PDO` 由调用方传入；本包从不自行连接，也不持有配置。
+- Domain 对象、映射与 hydrate —— 由 `migears/dao` 把行变成 Domain；本层对之一无所知。
+- schema、迁移、事务、连接池，以及 ORM。
+- 以带限定符的列名过滤 —— `filter()` 只接受未限定的列名；JOIN 查询请用 `where()`。
+
 ## 安装
 
 ```bash
@@ -304,6 +343,11 @@ $rows = $sql->select()
 $result = $sql->select()->from('users')->paginate(1, 20);
 // ['records' => [...], 'total' => 100]
 ```
+
+两种退化输入会被拒绝，而不是递给 PDO——因为它们此前都以驱动报错的形式浮现，点名的是 SQL，而不是那次调用：
+
+- **不带 `limit()` 的 `offset()`。** 单独一个 `OFFSET n` 在 SQLite 与 MySQL 上是语法错误，因此 `toSql()` 抛 `SqlException`（`offset() requires limit()`）。请一并调用 `limit()`，或改用 `paginate()`。
+- **不产生任何 SQL、却带着绑定的条件。** `where('', ['x' => 1])`，以及完全不带条件就 `bind()`，会抛 `SqlException` 并点名那个没有占位符可落的参数。单独一个 `where('')` 仍是清空条件的正当写法。
 
 #### filter 操作符后缀
 
