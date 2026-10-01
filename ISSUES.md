@@ -17,20 +17,23 @@ Legend — **P0** functional or security · **P1** documentation that fails when
 
 | | |
 |---|---|
-| Unsettled | P0 0 · P1 0 · P2 1 · P3 3 · other 1 |
-| Settled | 0 of 5 |
-| Waiting on the owner | _nothing_ |
-| Waiting on the reviewer | `P2-1`, `P3-1`, `P3-2`, `P3-3` |
-| Waiting on the coordinator | `G1` |
+| Unsettled | P0 0 · P1 0 · P2 0 · P3 3 · other 1 |
+| Settled | 4 of 8 |
+| Waiting on the owner | `P3-4`, `G1` |
+| Waiting on the coordinator | _nothing_ |
+| Waiting on the reviewer | `P3-5`, `P3-6` |
 | Deferred, owing nobody | _nothing_ |
 
 | id | level | status | title |
 |---|---|---|---|
-| [`P2-1`](issues/P2-1.md) | P2 | **fixed** | `SqlSelect::execute()` and `count()` call `$stmt->execute()` bare, … |
-| [`P3-1`](issues/P3-1.md) | P3 | **fixed** | `phpunit.xml.dist` leaves the strict flags off here too, so the … |
-| [`P3-2`](issues/P3-2.md) | P3 | **fixed** | Table identifiers are handled inconsistently: … |
-| [`P3-3`](issues/P3-3.md) | P3 | **fixed** | `SqlUpdate::set()` mixes two sides without clearing: `set('a = a + 1')` … |
-| [`G1`](issues/G1.md) | - | **question** | A missing logger is silent by construction: the constructor of every … |
+| [`P2-1`](issues/P2-1.md) | P2 | **verified** | `SqlSelect::execute()` and `count()` call `$stmt->execute()` bare, … |
+| [`P3-1`](issues/P3-1.md) | P3 | **verified** | `phpunit.xml.dist` leaves the strict flags off here too, so the … |
+| [`P3-2`](issues/P3-2.md) | P3 | **verified** | Table identifiers are handled inconsistently: … |
+| [`P3-3`](issues/P3-3.md) | P3 | **verified** | `SqlUpdate::set()` mixes two sides without clearing: `set('a = a + 1')` … |
+| [`P3-4`](issues/P3-4.md) | P3 | **open** | Table name validation uses ^\w+$ (strict) but column name validation is … |
+| [`P3-5`](issues/P3-5.md) | P3 | **fixed** | `offset(n)` without `limit()` emits `… OFFSET n`, which is a syntax … |
+| [`P3-6`](issues/P3-6.md) | P3 | **fixed** | `where('', ['x' => 1])` binds `:x` although the empty condition … |
+| [`G1`](issues/G1.md) | - | **accepted** | A missing logger is silent by construction: the constructor of every … |
 
 ## Unclosed
 
@@ -39,17 +42,16 @@ highest severity first. `waiting on` is the party who acts next, read from that 
 
 | | |
 |---|---|
-| Unclosed | **5** of 5 |
-| By status | `question` 1 · `fixed` 4 |
-| Waiting on | reviewer 4 · coordinator 1 |
+| Unclosed | **4** of 8 |
+| By status | `open` 1 · `accepted` 1 · `fixed` 2 |
+| Waiting on | owner 2 · reviewer 2 |
 
 | level | item | status | waiting on | title |
 |---|---|---|---|---|
-| **P2** | [`P2-1`](issues/P2-1.md) | `fixed` | reviewer | `SqlSelect::execute()` and `count()` call `$stmt->execute()` bare, … |
-| **P3** | [`P3-1`](issues/P3-1.md) | `fixed` | reviewer | `phpunit.xml.dist` leaves the strict flags off here too, so the … |
-| **P3** | [`P3-2`](issues/P3-2.md) | `fixed` | reviewer | Table identifiers are handled inconsistently: … |
-| **P3** | [`P3-3`](issues/P3-3.md) | `fixed` | reviewer | `SqlUpdate::set()` mixes two sides without clearing: `set('a = a + 1')` … |
-| **-** | [`G1`](issues/G1.md) | `question` | coordinator | A missing logger is silent by construction: the constructor of every … |
+| **P3** | [`P3-4`](issues/P3-4.md) | `open` | owner | Table name validation uses ^\w+$ (strict) but column name validation is … |
+| **P3** | [`P3-5`](issues/P3-5.md) | `fixed` | reviewer | `offset(n)` without `limit()` emits `… OFFSET n`, which is a syntax … |
+| **P3** | [`P3-6`](issues/P3-6.md) | `fixed` | reviewer | `where('', ['x' => 1])` binds `:x` although the empty condition … |
+| **-** | [`G1`](issues/G1.md) | `accepted` | owner | A missing logger is silent by construction: the constructor of every … |
 
 ## Verdict
 
@@ -90,20 +92,23 @@ No test for deeply nested WHERE conditions; no test for ORDER BY with multiple c
 
 | | |
 |---|---|
-| 未了结 | P0 0 · P1 0 · P2 1 · P3 3 · 其他 1 |
-| 已了结 | 0 / 5 |
-| 等负责人 | _无_ |
-| 等评审方 | `P2-1`, `P3-1`, `P3-2`, `P3-3` |
-| 等协调人 | `G1` |
+| 未了结 | P0 0 · P1 0 · P2 0 · P3 3 · 其他 1 |
+| 已了结 | 4 / 8 |
+| 等模块主 | `P3-4`, `G1` |
+| 等协调人 | _无_ |
+| 等评审方 | `P3-5`, `P3-6` |
 | 已暂缓，不欠谁 | _无_ |
 
 | id | 级别 | 状态 | 标题 |
 |---|---|---|---|
-| [`P2-1`](issues/P2-1.md) | P2 | **fixed** | SqlSelect::execute() 与 count() 裸调 $stmt->execute()，而 DML 各类都做了检查。SILENT … |
-| [`P3-1`](issues/P3-1.md) | P3 | **fixed** | phpunit.xml.dist 也未开严格开关，因此 ISSUES.md 里「PHP 警告即测试失败」的声明对本模块不成立。 |
-| [`P3-2`](issues/P3-2.md) | P3 | **fixed** | 表标识符处理不一致：SqlInsert/SqlUpdate/SqlDelete 把 $table … |
-| [`P3-3`](issues/P3-3.md) | P3 | **fixed** | SqlUpdate::set() 两侧互不清空：set("a = a + 1") 只写原始侧，set(["b" => 2]) … |
-| [`G1`](issues/G1.md) | - | **question** | 缺 logger 在构造上就是静默的：每个 SQL 类的构造函数都把参数默认成一个活的 `NullLogger` … |
+| [`P2-1`](issues/P2-1.md) | P2 | **verified** | SqlSelect::execute() 与 count() 裸调 $stmt->execute()，而 DML 各类都做了检查。SILENT … |
+| [`P3-1`](issues/P3-1.md) | P3 | **verified** | phpunit.xml.dist 也未开严格开关，因此 ISSUES.md 里「PHP 警告即测试失败」的声明对本模块不成立。 |
+| [`P3-2`](issues/P3-2.md) | P3 | **verified** | 表标识符处理不一致：SqlInsert/SqlUpdate/SqlDelete 把 $table … |
+| [`P3-3`](issues/P3-3.md) | P3 | **verified** | SqlUpdate::set() 两侧互不清空：set("a = a + 1") 只写原始侧，set(["b" => 2]) … |
+| [`P3-4`](issues/P3-4.md) | P3 | **open** | 表名校验使用 ^\w+$（严格），但列名校验限制较少，允许表名不接受的字符——同一契约的两层之间略有不对称。 |
+| [`P3-5`](issues/P3-5.md) | P3 | **fixed** | 不带 `limit()` 的 `offset(n)` 会输出 `… OFFSET n`，在 SQLite 与 MySQL … |
+| [`P3-6`](issues/P3-6.md) | P3 | **fixed** | `where('', ['x' => 1])` 绑定了 `:x`，而那个空条件不产生任何 SQL，于是 `execute()` … |
+| [`G1`](issues/G1.md) | - | **accepted** | 缺 logger 在构造上就是静默的：每个 SQL 类的构造函数都把参数默认成一个活的 `NullLogger` … |
 
 ## 未关闭
 
@@ -112,17 +117,16 @@ No test for deeply nested WHERE conditions; no test for ORDER BY with multiple c
 
 | | |
 |---|---|
-| 未关闭 | **5** / 5 |
-| 按状态 | `question` 1 · `fixed` 4 |
-| 等在谁 | 评审方 4 · 协调人 1 |
+| 未关闭 | **4** / 8 |
+| 按状态 | `open` 1 · `accepted` 1 · `fixed` 2 |
+| 等在谁 | 模块主 2 · 评审方 2 |
 
 | 级别 | 条目 | 状态 | 等在谁 | 标题 |
 |---|---|---|---|---|
-| **P2** | [`P2-1`](issues/P2-1.md) | `fixed` | 评审方 | SqlSelect::execute() 与 count() 裸调 $stmt->execute()，而 DML 各类都做了检查。SILENT … |
-| **P3** | [`P3-1`](issues/P3-1.md) | `fixed` | 评审方 | phpunit.xml.dist 也未开严格开关，因此 ISSUES.md 里「PHP 警告即测试失败」的声明对本模块不成立。 |
-| **P3** | [`P3-2`](issues/P3-2.md) | `fixed` | 评审方 | 表标识符处理不一致：SqlInsert/SqlUpdate/SqlDelete 把 $table … |
-| **P3** | [`P3-3`](issues/P3-3.md) | `fixed` | 评审方 | SqlUpdate::set() 两侧互不清空：set("a = a + 1") 只写原始侧，set(["b" => 2]) … |
-| **-** | [`G1`](issues/G1.md) | `question` | 协调人 | 缺 logger 在构造上就是静默的：每个 SQL 类的构造函数都把参数默认成一个活的 `NullLogger` … |
+| **P3** | [`P3-4`](issues/P3-4.md) | `open` | 模块主 | 表名校验使用 ^\w+$（严格），但列名校验限制较少，允许表名不接受的字符——同一契约的两层之间略有不对称。 |
+| **P3** | [`P3-5`](issues/P3-5.md) | `fixed` | 评审方 | 不带 `limit()` 的 `offset(n)` 会输出 `… OFFSET n`，在 SQLite 与 MySQL … |
+| **P3** | [`P3-6`](issues/P3-6.md) | `fixed` | 评审方 | `where('', ['x' => 1])` 绑定了 `:x`，而那个空条件不产生任何 SQL，于是 `execute()` … |
+| **-** | [`G1`](issues/G1.md) | `accepted` | 模块主 | 缺 logger 在构造上就是静默的：每个 SQL 类的构造函数都把参数默认成一个活的 `NullLogger` … |
 
 ## 结论
 
